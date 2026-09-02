@@ -1,0 +1,68 @@
+{
+  "me": "이성희",
+  "sheet": {
+    "file_id": "1hX4OX8PVpNA0SNdX-tqWcF3BdNRBJxz14IgUQzi5r8g",
+    "title": "Bear 아이디어 제안",
+    "tab": "현황판",
+    "anchor_labels": ["제안월", "접수자", "대분류", "대표 제품명", "세부 현황"],
+    "note": "샌드박스에서 docs.google.com 은 프록시에 막힌다. mcp__Google_Drive__read_file_content 로만 읽고, 시트에 쓰지 않는다."
+  },
+  "drive_upload": {
+    "enabled": true,
+    "folder_id": "",
+    "folder_title": "BEAR 아이디어 제안 현황판",
+    "note": "folder_id 가 비어 있으면 첫 실행 세션이 Drive 에 folder_title 폴더를 만들고 ID 를 여기에 적어 커밋한다."
+  },
+  "notify": {
+    "gmail_to": "yish123428@gmail.com",
+    "subject_prefix": "[BEAR 자동화]",
+    "attention_prefix": "[확인 필요]",
+    "note": "본인 앞 완료 알림 1통만 보낸다. 사업팀 공유 메일(.eml)은 절대 발송하지 않는다."
+  },
+  "recipients": "assets/recipients.json",
+  "paths": {
+    "data_dir": "data",
+    "output_dir": "output",
+    "work_dir": "work",
+    "runs_state": "data/runs.json"
+  },
+  "git": {
+    "branch": "(체크아웃된 기본 브랜치에 push)",
+    "fallback_branch_prefix": "bear/"
+  },
+  "schedule": {
+    "timezone": "Asia/Seoul",
+    "grace_days": 10,
+    "extra_holidays": [],
+    "skip_dates": [],
+    "note": "extra_holidays: 창립기념일 등 회사 휴무일(YYYY-MM-DD). skip_dates: 특정 날짜만 건너뛰고 다음 영업일에 실행."
+  },
+  "selection": {
+    "catchup_since": "26년 1월",
+    "total_count_source": "base_plus_new"
+  },
+  "mapping": {
+    "bonbu": [
+      {"match": "마케팅", "value": "MKT"},
+      {"match": "병원|로컬|영업", "value": "영업본부"}
+    ],
+    "division_suffix": {"MKT": "사업부"},
+    "team_suffix": {"MKT": "사업팀"},
+    "team_aliases": {
+      "호피안": "호흡피부안과사업팀",
+      "호흡피부안과": "호흡피부안과사업팀",
+      "호흡피부비뇨": "호흡피부비뇨사업팀",
+      "디지털1": "디지털헬스1사업팀",
+      "디지털2": "디지털헬스2사업팀"
+    },
+    "review_status": {
+      "rules": [
+        {"detail": "1차 타당성 검토", "status": "진행중", "value": "1차 타당성 검토중"},
+        {"detail": "유관부서 검토", "status": "진행중", "value": "유관부서 검토중"},
+        {"detail": "2차 피드백", "status": "진행중", "value": "2차 피드백 진행중"}
+      ],
+      "stopped_value": "검토 중단"
+    },
+    "compound_types": ["복합제"]
+  }
+}

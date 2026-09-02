@@ -1,0 +1,53 @@
+{
+  "from": {
+    "name": "이성희(B)",
+    "email": "shlee203@daewoong.co.kr"
+  },
+  "to": [
+    {"name": "ETC마케팅본부", "email": "!00464@daewoong.co.kr"},
+    {"name": "ETC병원본부",   "email": "t_429tq@daewoong.co.kr"},
+    {"name": "ETC로컬본부",   "email": "t_841mc@daewoong.co.kr"}
+  ],
+  "cc": [
+    {"name": "박형철",         "email": "manyang@daewoong.co.kr"},
+    {"name": "유창득",         "email": "2030273@daewoong.co.kr"},
+    {"name": "박승영",         "email": "letup@daewoong.co.kr"},
+    {"name": "박은경(B)",      "email": "ek0831@daewoong.co.kr"},
+    {"name": "서욱",           "email": "vitzmaster@daewoong.co.kr"},
+    {"name": "조병하",         "email": "cbh2523@daewoong.co.kr"},
+    {"name": "이해민",         "email": "kkoon@daewoong.co.kr"},
+    {"name": "김경태",         "email": "tae1733@daewoong.co.kr"},
+    {"name": "임병옥",         "email": "ranger3642@daewoong.co.kr"},
+    {"name": "김항진",         "email": "khj760510@daewoong.co.kr"},
+    {"name": "노희창",         "email": "1970433@daewoong.co.kr"},
+    {"name": "남궁민",         "email": "ngmin81@daewoong.co.kr"},
+    {"name": "정경진",         "email": "mcjeans@daewoong.co.kr"},
+    {"name": "정진명",         "email": "jayjm27@daewoong.co.kr"},
+    {"name": "박명진",         "email": "2050201@daewoong.co.kr"},
+    {"name": "임청하",         "email": "chungha@daewoong.co.kr"},
+    {"name": "박정은",         "email": "parkje@daewoong.co.kr"},
+    {"name": "이아름",         "email": "areumlee@daewoong.co.kr"},
+    {"name": "황은정",         "email": "ejhwang244@daewoong.co.kr"},
+    {"name": "이상화",         "email": "leesanghwa83@daewoong.co.kr"},
+    {"name": "개발기획센터",    "email": "t_00834@daewoong.co.kr"},
+    {"name": "CH개발기획팀",    "email": "t_446gf@daewoong.co.kr"},
+    {"name": "나재진",         "email": "jjnah177@daewoong.co.kr"},
+    {"name": "김관영",         "email": "pharmrich@daewoong.co.kr"},
+    {"name": "이경민(A)",      "email": "1471km@daewoong.co.kr"},
+    {"name": "임상개발센터",    "email": "!00543@daewoong.co.kr"},
+    {"name": "임상의학센터",    "email": "t_565oh@daewoong.co.kr"},
+    {"name": "제제기술센터",    "email": "!00475@daewoong.co.kr"},
+    {"name": "제품연구센터",    "email": "t_578ke@daewoong.co.kr"}
+  ],
+  "google_sheet_url": "https://docs.google.com/spreadsheets/d/1hX4OX8PVpNA0SNdX-tqWcF3BdNRBJxz14IgUQzi5r8g/edit?usp=sharing",
+  "signature": {
+    "name_kr": "이성희",
+    "name_en": "Sunghee Lee",
+    "team_kr": "신제품기획팀",
+    "team_en": "Development Planning Team",
+    "address": "서울시 강남구 봉은사로114길 12 (삼성동)",
+    "mobile": "010-4343-8346",
+    "email": "shlee203@daewoong.co.kr",
+    "logo_url": "https://sign.mail.worksmobile.com/signature/logo/kr1/oeKwKogmKAgqKxijKotqFAU./fqb-KAMZaAbmKAtZFxv9KoU."
+  }
+}

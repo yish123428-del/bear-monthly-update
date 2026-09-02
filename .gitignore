@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.venv/
+work/
+.claude/settings.local.json
+# output/ 과 data/ 는 커밋 대상 (월별 산출물·베이스 현황판 이력)
