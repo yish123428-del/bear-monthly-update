@@ -1,10 +1,16 @@
 # Routine 「BEAR 월간 현황 업데이트」 설정
 
-Claude Code Routine 이 매월 실행일 후보일에 새 세션을 열어 이 저장소의 스킬을 돌린다.
+Claude Code Routine 이 매월 실행일 후보일에 이 저장소의 스킬을 돌린다.
 Routine 세션에는 **Google Drive 와 Gmail 커넥터가 반드시 켜져 있어야** 한다
 (시트 읽기 → `mcp__Google_Drive__read_file_content`, 알림 → `mcp__Gmail__send_message`).
-세션 안의 도구로 만든 Routine 에는 커넥터가 붙지 않을 수 있으므로, 그 경우 claude.ai 의 Routines 화면에서
-아래 값으로 직접 만든다.
+
+## 현재 구성 (2026-09-02)
+
+- Routine `trig_016Vh1FfExscSXaLcSuZnDQx` — **커넥터를 가진 기존 세션(`session_01MZxPsy8eSauhyxsn6nDsCD`)으로 되돌아오는(self-bind) 방식**.
+  세션 안의 `create_trigger` 로 만든 "새 세션" Routine 에는 이 조직에서 커넥터가 붙지 않아(2026-09-02 테스트 발화로 확인: Drive·Gmail 도구 없음)
+  스킬을 만든 세션 자체를 매월 재개하도록 바꿨다.
+- 그 세션이 사라지거나 컨텍스트가 너무 커지면, claude.ai 의 **Routines 화면에서 아래 값으로 새로 만든다**
+  (UI 에서는 커넥터를 직접 고를 수 있다).
 
 | 항목 | 값 |
 |---|---|
