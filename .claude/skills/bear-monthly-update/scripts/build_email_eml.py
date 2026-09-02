@@ -22,21 +22,23 @@ def build_proposals_html(proposals_text_file=None, proposals_json=None):
         return ""
     parts = []
     for idx, p in enumerate(proposals_json, 1):
-        bonbu = p.get("본부") or ""
+        # 본부표시/팀표시 가 있으면 메일 본문에는 그것을 쓴다 (예: 영업부는 본부 생략, '병원경기2사무소')
+        bonbu = p["본부표시"] if "본부표시" in p else (p.get("본부") or "")
         sabu = p.get("사업부") or ""
+        team = p.get("팀표시") or p["팀"]
         sep_a = " " if bonbu else ""
         sep_b = " " if sabu else ""
         if p.get("이메일표기"):
             li_text = p["이메일표기"]
             html = ('&nbsp; &nbsp; &nbsp;' + str(idx) + '. ' + bonbu + sep_a + sabu + sep_b
-                + '<span style="font-weight: bold;">' + p["팀"] + ' ' + p["제안자"]
+                + '<span style="font-weight: bold;">' + team + ' ' + p["제안자"]
                 + '님 ' + str(p["건수"]) + '건</span>\n'
                 + '<ul class="list-disc flex flex-col gap-1 pl-8 mb-3">\n'
                 + '<li class="whitespace-normal break-words pl-2">' + li_text + '</li></ul>\n')
         else:
             html = PROPOSAL_BLOCK_TEMPLATE.format(
                 idx=idx, bonbu=bonbu, sep_a=sep_a, sabu=sabu, sep_b=sep_b,
-                team=p["팀"], person=p["제안자"], count=p["건수"],
+                team=team, person=p["제안자"], count=p["건수"],
                 idea_type=p["아이디어유형"], ic=p["건수"], detail=p["제안내용"],
             )
         parts.append(html)

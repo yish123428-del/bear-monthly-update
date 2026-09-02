@@ -83,7 +83,7 @@ def load_new_proposals(path):
             continue
         p = {
             "월": cell("제안 연월"),
-            "본부": cell("본부") or "",
+            "본부": (cell("본부") or "").strip() if isinstance(cell("본부"), str) else (cell("본부") or ""),
             "사업부": cell("사업부") or "",
             "팀": str(team).strip(),
             "제안자": cell("제안자"),
@@ -173,7 +173,12 @@ def find_subtotal_column(ws, header_row):
     return None
 
 
-def update_sheet1_count(ws, team_name, month_text, n, debug_section=""):
+def update_sheet1_count(ws, team_name, month_text, n, debug_section="", header_labels=None):
+    """team_name 행의 month_text 컬럼에 +n.
+
+    header_labels 를 주면 그 라벨('팀'/'사업부'/'사무소')로 시작하는 섹션만 본다.
+    숨김 처리된 헤더 행(예: 상단 구버전 표)은 건너뛴다.
+    """
     # 모든 가능한 헤더 행 위치 수집 ('팀'/'사업부'/'사무소' 단어가 들어있는 셀)
     matched = []
     for r in range(1, ws.max_row + 1):
@@ -188,7 +193,11 @@ def update_sheet1_count(ws, team_name, month_text, n, debug_section=""):
     warnings = []
     for header_row in matched:
         next_h = next((h for h in matched if h > header_row), ws.max_row + 1)
+        rd = ws.row_dimensions.get(header_row)
+        if rd is not None and rd.hidden:
+            continue
         team_col = None
+        label = None
         for cell in ws[header_row]:
             v = cell.value
             if not v:
@@ -196,8 +205,11 @@ def update_sheet1_count(ws, team_name, month_text, n, debug_section=""):
             sv = str(v).strip()
             if sv in ("팀", "사업부", "사무소"):
                 team_col = cell.column
+                label = sv
                 break
         if team_col is None:
+            continue
+        if header_labels and label not in header_labels:
             continue
         # 데이터 시작은 header_row + 2 또는 +3 (서브헤더와 빈줄 고려)
         data_start = header_row + 1
@@ -377,6 +389,14 @@ def run(base, new_proposals, report_month, prev_month, new_count, total_count,
                 ws1, p["팀"], month_text, p["건수"], debug_section="제안현황"
             )
             all_warnings.extend(warns)
+            # 영업부 제안은 '2. 영업부(사업부별)' 표의 사업부 행도 +n (현황판 운영 관행)
+            division = str(p.get("사업부") or "").strip()
+            if division and str(p.get("본부") or "").strip() != "MKT":
+                ok2, warns2 = update_sheet1_count(
+                    ws1, division, month_text, p["건수"], debug_section="사업부별",
+                    header_labels=("사업부",)
+                )
+                all_warnings.extend(warns2)
     else:
         all_warnings.append("시트 '1. 제안 현황' 없음")
 

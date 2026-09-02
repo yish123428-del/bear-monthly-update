@@ -65,7 +65,18 @@ class TestNormalize(unittest.TestCase):
         self.assertEqual(self.s2p.norm_team("소화기2", "MKT", self.m), "소화기2사업팀")
         self.assertEqual(self.s2p.norm_team("병원경기2", "영업본부", self.m), "병원경기2")
         self.assertEqual(self.s2p.norm_division("마케팅1", "MKT", self.m), "마케팅1사업부")
-        self.assertEqual(self.s2p.norm_division("서울2", "영업본부", self.m), "서울2")
+        self.assertEqual(self.s2p.norm_division("서울2", "영업본부", self.m), "서울2사업부")
+        self.assertEqual(self.s2p.norm_team("디지털1", "MKT", self.m), "디지털헬스1팀")
+
+    def test_display_fields_for_sales(self):
+        row = {"제안월": "26년 7월", "본부": "ETC 병원본부", "사업부": "서울2", "팀": "병원경기2", "접수자": "권봉기",
+               "품목분류": "의약품", "개발형태": "자체 개발", "대분류": "복합제", "현황": "진행중", "세부현황": "1차 타당성 검토"}
+        p = self.s2p.to_proposal(row, self.m)
+        self.assertEqual((p["본부"], p["본부표시"]), ("영업본부", ""))
+        self.assertEqual((p["팀"], p["팀표시"]), ("병원경기2", "병원경기2사무소"))
+        self.assertEqual(p["사업부"], "서울2사업부")
+        mkt = self.s2p.to_proposal({**row, "본부": "ETC마케팅본부", "사업부": "마케팅1", "팀": "소화기2"}, self.m)
+        self.assertEqual((mkt["본부표시"], mkt["팀표시"]), ("MKT", "소화기2사업팀"))
 
     def test_review_status(self):
         self.assertEqual(self.s2p.norm_review("1차 타당성 검토", "진행중", self.m), "1차 타당성 검토중")

@@ -29,7 +29,7 @@ class TestUpdate(unittest.TestCase):
             {"월": "26년 8월", "본부": "MKT", "사업부": "마케팅1사업부", "팀": "소화기2사업팀", "제안자": "김혁(C)",
              "건수": 1, "제안유형": "의약품 자체개발", "아이디어유형": "복합제", "제안내용": "NSAIDs + 소화기용제 복합제",
              "검토결과": "1차 타당성 검토중", "이메일표기": ""},
-            {"월": "26년 8월", "본부": "영업본부", "사업부": "서울3", "팀": "북부2", "제안자": "최태우",
+            {"월": "26년 8월", "본부": "영업본부", "사업부": "서울3사업부", "팀": "북부2", "제안자": "최태우",
              "건수": 1, "제안유형": "의약품 도입/제휴", "아이디어유형": "개량신약/제네릭", "제안내용": "엔커버",
              "검토결과": "검토 중단", "이메일표기": ""},
             {"월": "26년 8월", "본부": "MKT", "사업부": "마케팅2사업부", "팀": "미지의팀사업팀", "제안자": "홍길동",
@@ -61,6 +61,33 @@ class TestUpdate(unittest.TestCase):
         self.assertEqual(self.ws1.cell(row=r, column=6 + 3).value, 1)   # 기존 4월 값 유지
         r2 = self.find_row("북부2")
         self.assertEqual(self.ws1.cell(row=r2, column=6 + 7).value, 1)
+        # 영업부 제안은 사업부별 표도 +1, MKT 제안의 사업부(마케팅1사업부)는 표가 없으므로 경고 없이 무시
+        r3 = self.find_row("서울3사업부")
+        self.assertEqual(self.ws1.cell(row=r3, column=6 + 7).value, 1)
+        self.assertEqual(self.ws1.cell(row=self.find_row("서울2사업부"), column=6 + 7).value, 0)
+
+    def test_hidden_legacy_header_skipped(self):
+        import helpers
+        import update_status_excel as use
+        base = helpers.make_base_xlsx(Path(self.tmp.name) / "b2.xlsx")
+        wb = openpyxl.load_workbook(base)
+        ws = wb["1. 제안 현황"]
+        # 상단에 숨김 처리된 구버전 표를 흉내 낸다 (row 5: 헤더 '팀', row 6: 데이터)
+        ws.cell(row=5, column=3, value="팀")
+        ws.cell(row=5, column=6, value="1월")
+        for i in range(12):
+            ws.cell(row=5, column=6 + i, value=f"{i + 1}월")
+        ws.cell(row=6, column=3, value="소화기2사업팀")
+        ws.cell(row=6, column=13, value=7)
+        ws.row_dimensions[5].hidden = True
+        ws.row_dimensions[6].hidden = True
+        wb.save(base)
+        out = Path(self.tmp.name) / "o2.xlsx"
+        use.run(str(base), [self.proposals[0]], "26년 9월", "8월", 1, 85, str(out))
+        ws = openpyxl.load_workbook(out)["1. 제안 현황"]
+        self.assertEqual(ws.cell(row=6, column=13).value, 7)   # 숨김 표는 그대로
+        r = next(r for r in range(10, ws.max_row + 1) if ws.cell(row=r, column=3).value == "소화기2사업팀")
+        self.assertEqual(ws.cell(row=r, column=13).value, 1)
 
     def test_formulas_preserved(self):
         r = self.find_row("소화기2사업팀")

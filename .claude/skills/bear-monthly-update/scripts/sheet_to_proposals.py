@@ -197,11 +197,15 @@ def draft_content(row: dict, mapping: dict) -> str:
 
 def to_proposal(row: dict, mapping: dict) -> dict:
     bonbu = norm_bonbu(row.get("본부", ""), mapping)
+    team = norm_team(row.get("팀", ""), bonbu, mapping)
+    display_suffix = mapping.get("team_display_suffix", {}).get(bonbu, "")
     p = {
         "월": row["제안월"],
         "본부": bonbu,
+        "본부표시": mapping.get("bonbu_display", {}).get(bonbu, bonbu),
         "사업부": norm_division(row.get("사업부", ""), bonbu, mapping),
-        "팀": norm_team(row.get("팀", ""), bonbu, mapping),
+        "팀": team,
+        "팀표시": (team + display_suffix) if team and display_suffix and not team.endswith(display_suffix) else team,
         "제안자": _clean(row.get("접수자")),
         "건수": 1,
         "제안유형": f"{_clean(row.get('품목분류'))} {_clean(row.get('개발형태')).replace(' ', '')}".strip(),

@@ -214,6 +214,7 @@ body{{margin:0;padding:12px;background:#fff;font-family:'NanumGothic','Malgun Go
 table{{border-collapse:collapse;table-layout:fixed}}
 td{{padding:1px 4px;overflow:hidden;vertical-align:middle;white-space:nowrap;line-height:1.35}}
 td.wrap{{white-space:normal;word-break:break-all}}
+td.spill{{overflow:visible;position:relative;z-index:1}}
 """
     total_w = sum(widths) + 8 * len(widths) + 40
     parts = [f"<!doctype html><html><head><meta charset='utf-8'><style>{css}</style></head>"
@@ -233,6 +234,7 @@ td.wrap{{white-space:normal;word-break:break-all}}
             if isinstance(v, str) and v.startswith("="):
                 v = ev.evaluate(v[1:], cell.coordinate)
             text = html.escape(_fmt_value(v, cell.number_format))
+            rs, cs = span.get((r, c), (1, 1))
             styles = []
             f = cell.font
             if f is not None:
@@ -273,10 +275,14 @@ td.wrap{{white-space:normal;word-break:break-all}}
                 styles.append("text-align:right")
             if c in force_wrap and not cls:
                 cls = " class='wrap'"
+            # Excel 처럼: 오른쪽 이웃 셀이 비어 있으면 텍스트가 그쪽으로 넘쳐 보이게 (제목·섹션 표기 잘림 방지)
+            if (not cls and isinstance(v, str) and rs == 1 and cs == 1
+                    and c < last_c and ws.cell(row=r, column=c + 1).value in (None, "")
+                    and (al is None or al.horizontal in (None, "general", "left"))):
+                cls = " class='spill'"
             b = _border_css(cell.border)
             if b:
                 styles.append(b)
-            rs, cs = span.get((r, c), (1, 1))
             attrs = (f" rowspan='{rs}'" if rs > 1 else "") + (f" colspan='{cs}'" if cs > 1 else "")
             parts.append(f"<td{attrs}{cls} style='{';'.join(styles)}'>{text}</td>")
         parts.append("</tr>")
