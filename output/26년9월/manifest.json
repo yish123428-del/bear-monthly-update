@@ -1,0 +1,21 @@
+{
+  "report_month": "26년 9월",
+  "version": 1,
+  "new_count": 1,
+  "total_count": 85,
+  "base": "/home/user/bear-monthly-update/data/BEAR_아이디어_제안_현황판_26년8월_v1.xlsx",
+  "status_xlsx": "/home/user/bear-monthly-update/output/26년9월/BEAR_아이디어_제안_현황판_26년9월_v1.xlsx",
+  "eml": "/home/user/bear-monthly-update/output/26년9월/BEAR_아이디어_제안_현황_공유_26년9월_1주차.eml",
+  "images": [
+    "/home/user/bear-monthly-update/output/26년9월/images/status_table.png",
+    "/home/user/bear-monthly-update/output/26년9월/images/summary_table.png"
+  ],
+  "review": "/home/user/bear-monthly-update/output/26년9월/review.md",
+  "unmatched_teams": [],
+  "warnings": [],
+  "attention": false,
+  "notify_subject": "[BEAR 자동화] 26년 9월 현황판·메일 생성 완료 (신규 1건, 총 85건)",
+  "dry_run": false,
+  "built_at": "2026-09-02 10:26:11 KST",
+  "data_copy": "/home/user/bear-monthly-update/data/BEAR_아이디어_제안_현황판_26년9월_v1.xlsx"
+}
