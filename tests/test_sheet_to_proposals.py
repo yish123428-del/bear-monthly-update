@@ -205,3 +205,57 @@ class TestSelectionEndToEnd(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(HAVE_OPENPYXL, "openpyxl 미설치")
+class TestStatusSync(unittest.TestCase):
+    """시트에서 '검토 중단' 으로 바뀐 기존 건을 누적 요약(시트2) 검토 결과에 반영."""
+
+    def setUp(self):
+        import helpers
+        import sheet_to_proposals as s2p
+        import update_status_excel as use
+        self.s2p, self.use = s2p, use
+        self.tmp = tempfile.TemporaryDirectory()
+        rows = [
+            # 시트: 진행중 → 그대로 둬야 함 (사람이 다듬은 '유관부서 검토중' 유지)
+            ["26년 4월", "소화기2사업팀", "김민수", "의약품 자체개발", "복합제", "우루사+실리스칸 복합제(UDCA+실리마린)", "유관부서 검토중"],
+            # 시트: 검토 중단 → 갱신 대상
+            ["26년 8월", "북부2", "최태우", "의약품 도입/제휴", "개량신약/제네릭", "엔커버 제네릭", "1차 타당성 검토중"],
+            # 이미 검토 중단 → 변경 없음
+            ["26년 7월", "병원경기2", "권봉기", "의약품 자체개발", "복합제", "펙수클루+클로아트+리토바젯 복합제", "검토 중단"],
+        ]
+        self.base = helpers.make_base_xlsx(Path(self.tmp.name) / "BEAR_아이디어_제안_현황판_26년9월_v1.xlsx",
+                                           report_month="26년 9월", sheet2_rows=rows)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_only_stopped_rows_updated(self):
+        meta = self.s2p.run(str(FIXTURE), "26년 10월", Path(self.tmp.name) / "w", CONFIG, str(self.base))
+        ups = meta["status_updates"]
+        self.assertEqual(len(ups), 1, ups)
+        self.assertEqual(ups[0]["old"], "1차 타당성 검토중")
+        self.assertEqual(ups[0]["new"], "검토 중단")
+        self.assertIn("최태우", ups[0]["label"])
+        review = (Path(self.tmp.name) / "w" / "review.md").read_text(encoding="utf-8")
+        self.assertIn("누적 요약 검토 결과 갱신", review)
+
+        out = Path(self.tmp.name) / "out.xlsx"
+        warns = self.use.run(str(self.base), [], "26년 10월", "9월", 0, 85, str(out), status_updates=ups)
+        self.assertEqual(warns, [])
+        ws2 = openpyxl.load_workbook(out)["2. 누적 제안 요약(26.01~)"]
+        vals = {ws2.cell(row=r, column=3).value: ws2.cell(row=r, column=7).value for r in range(4, 7)}
+        self.assertEqual(vals["최태우"], "검토 중단")
+        self.assertEqual(vals["김민수"], "유관부서 검토중")
+        self.assertEqual(ws2["A1"].value, "누적 제안 요약 (26년 10월)")
+        ws1 = openpyxl.load_workbook(out)["1. 제안 현황"]
+        self.assertEqual(ws1["A3"].value, "[ 누계 진행 결과 _9월 0건 총 85건 ] ")
+
+    def test_stale_old_value_is_skipped(self):
+        out = Path(self.tmp.name) / "out2.xlsx"
+        bad = [{"row": 5, "old": "다른 값", "new": "검토 중단", "label": "x"}]
+        warns = self.use.run(str(self.base), [], "26년 10월", "9월", 0, 85, str(out), status_updates=bad)
+        self.assertTrue(any("불일치" in w for w in warns))
+        ws2 = openpyxl.load_workbook(out)["2. 누적 제안 요약(26.01~)"]
+        self.assertEqual(ws2.cell(row=5, column=7).value, "1차 타당성 검토중")

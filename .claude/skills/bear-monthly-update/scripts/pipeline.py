@@ -169,7 +169,8 @@ def cmd_build(args) -> int:
     # 2) 현황판 갱신
     plain = [{k: v for k, v in p.items() if not k.startswith("_")} for p in proposals]
     warnings += use.run(str(base), plain, report_month, prev_month_label(report_month),
-                        meta["new_count"], meta["total_count"], str(status_path))
+                        meta["new_count"], meta["total_count"], str(status_path),
+                        status_updates=meta.get("status_updates"))
 
     # 3) 이미지 → 4) .eml
     status_png, summary_png = render_images(status_path, out_dir / "images", warnings, args.skip_render)
@@ -195,6 +196,7 @@ def cmd_build(args) -> int:
         "images": [str(status_png), str(summary_png)],
         "review": str(out_dir / "review.md"),
         "unmatched_teams": unmatched,
+        "status_updates": meta.get("status_updates") or [],
         "warnings": warnings,
         "attention": attention,
         "notify_subject": subject,

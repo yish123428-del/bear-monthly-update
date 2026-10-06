@@ -84,6 +84,12 @@ def main():
         with open(args.proposals_json, "r", encoding="utf-8") as f:
             proposals_json = json.load(f)
     proposals_html = build_proposals_html(args.proposals_text_file, proposals_json)
+    if not proposals_html.strip():
+        # 신규 0건인 달: [신규 제안] 아래가 비지 않도록 한 줄 표기
+        proposals_html = ('<p style="margin: 0px; padding: 0px; font-family: 나눔고딕, NanumGothic, sans-serif; '
+                          'font-size: 14px;">&nbsp; &nbsp; &nbsp;- ' + args.prev_month + ' 신규 제안 없음</p>\n'
+                          '<p style="margin: 0px; padding: 0px; font-family: 나눔고딕, NanumGothic, sans-serif; '
+                          'font-size: 14px;"><br></p>\n')
 
     report_label = args.report_month_label
     if not report_label:

@@ -252,7 +252,7 @@ def to_proposal(row: dict, mapping: dict) -> dict:
 def load_base_info(base_path: str | Path) -> dict:
     """베이스 현황판에서 팀명 집합, 시트2 기존 키, 누계 총건수를 읽는다."""
     wb = openpyxl.load_workbook(base_path, data_only=False)
-    info = {"team_names": [], "sheet2_keys": set(), "total": None, "prev_text": None}
+    info = {"team_names": [], "sheet2_keys": set(), "sheet2_rows": [], "total": None, "prev_text": None}
     ws1 = wb["1. 제안 현황"] if "1. 제안 현황" in wb.sheetnames else None
     if ws1 is not None:
         headers = []
@@ -296,7 +296,80 @@ def load_base_info(base_path: str | Path) -> dict:
                 except ValueError:
                     continue
                 info["sheet2_keys"].add(key)
+                info["sheet2_rows"].append({
+                    "row": r, "key": key,
+                    "팀": ws2.cell(row=r, column=hm.get("사업팀/사무소", 2)).value or "",
+                    "제안자": ws2.cell(row=r, column=hm.get("제안자", 3)).value or "",
+                    "내용": str(ws2.cell(row=r, column=hm.get("제안 내용", 6)).value or ""),
+                    "결과": str(ws2.cell(row=r, column=hm.get("검토 결과", 7)).value or "").strip(),
+                })
     return info
+
+
+# ---------- 기존 행 검토 결과 동기화 ----------
+
+def _bigrams(text: str) -> set:
+    t = re.sub(r"\s+", "", (text or "").lower())
+    return {t[i:i + 2] for i in range(len(t) - 1)}
+
+
+def _similarity(a: str, b: str) -> float:
+    x, y = _bigrams(a), _bigrams(b)
+    return len(x & y) / len(x | y) if x and y else 0.0
+
+
+def compute_status_updates(rows: list[dict], base_info: dict | None, config: dict) -> tuple[list[dict], list[str]]:
+    """시트에서 '검토 중단' 으로 바뀐 기존 제안을 베이스 시트2(누적 제안 요약)에서 찾아 갱신 목록을 만든다.
+
+    한 방향만 반영한다(→ 검토 중단). 시트2의 다른 검토 결과 문구는 사람이 다듬은 것이라 건드리지 않는다.
+    매칭 키: (제안 연월, 제안자=접수자, 아이디어 유형=대분류). 같은 키가 여러 건이면
+    시트 쪽 상태가 모두 같을 때 일괄, 다르면 제안 내용 유사도로 짝짓는다.
+    """
+    if not base_info or not base_info.get("sheet2_rows"):
+        return [], []
+    stopped = config.get("mapping", {}).get("review_status", {}).get("stopped_value", "검토 중단")
+    since = month_key(config.get("selection", {}).get("catchup_since", "26년 1월"))
+    warnings: list[str] = []
+
+    sheet_groups: dict = {}
+    for row in rows:
+        try:
+            if month_key(row["제안월"]) < since:
+                continue
+        except ValueError:
+            continue
+        key = (row["제안월"], use.normalize(row.get("접수자")), use.normalize(row.get("대분류")))
+        sheet_groups.setdefault(key, []).append(row)
+
+    base_groups: dict = {}
+    for b in base_info["sheet2_rows"]:
+        base_groups.setdefault(b["key"], []).append(b)
+
+    def sheet_text(row):
+        return " ".join(_clean(row.get(k)) for k in ("제품명", "성분", "소분류", "적응증"))
+
+    updates: list[dict] = []
+    for key, brows in base_groups.items():
+        srows = sheet_groups.get(key)
+        if not srows:
+            continue
+        pairs = []
+        if len({(r.get("현황") or "").strip() for r in srows}) == 1:
+            pairs = [(b, srows[0]) for b in brows]
+        else:
+            pool = list(srows)
+            for b in brows:
+                scored = sorted(((_similarity(b["내용"], sheet_text(s)), i) for i, s in enumerate(pool)), reverse=True)
+                if not scored or scored[0][0] < 0.08:
+                    warnings.append(f"검토 결과 동기화 보류(매칭 불확실): {b['key'][0]} {b['제안자']} '{b['내용']}'")
+                    continue
+                pairs.append((b, pool.pop(scored[0][1])))
+        for b, s in pairs:
+            if (s.get("현황") or "").strip() == "검토 중단" and b["결과"] != stopped:
+                updates.append({"row": b["row"], "old": b["결과"], "new": stopped,
+                                "label": f"{b['key'][0]} {b['팀']} {b['제안자']} — {b['내용']}",
+                                "sheet_detail": (s.get("세부현황") or "").strip()})
+    return updates, warnings
 
 
 def team_matches(team: str, team_names: list[str]) -> bool:
@@ -401,6 +474,10 @@ def write_review(path: Path, meta: dict, proposals: list[dict], warnings: list[s
     for i, p in enumerate(proposals, 1):
         flag = " **[팀 미매칭]**" if p.get("_unmatched") else ""
         lines.append(f"{i}. {p['월']} {p['본부']} {p['사업부']} **{p['팀']} {p['제안자']}** — {p['아이디어유형']} / {p['제안내용']} / {p['검토결과']} ({p.get('_reason','')}){flag}")
+    updates = meta.get("status_updates") or []
+    lines += ["", "## 누적 요약 검토 결과 갱신 (시트 기준 → 검토 중단)", ""]
+    lines += [f"- {u['label']}: {u['old']} → {u['new']} (시트 세부 현황: {u.get('sheet_detail') or '-'})"
+              for u in updates] or ["(없음)"]
     lines += ["", "## 확인 필요", ""]
     attention = [w for w in warnings if "미매칭" in w or "캐치업" in w or "불일치" in w]
     lines += [f"- {w}" for w in attention] or ["(없음)"]
@@ -421,6 +498,8 @@ def run(dump: str, report_month: str, out_dir: str | Path, config: dict,
         warnings.append("베이스 현황판 없음: 팀 매칭·캐치업·누계 교차검증을 건너뜀")
     proposals, w2 = select_proposals(rows, report_month, config, base_info, months)
     warnings += w2
+    status_updates, w3 = compute_status_updates(rows, base_info, config)
+    warnings += w3
 
     new_count = sum(int(p.get("건수", 1)) for p in proposals)
     source = config.get("selection", {}).get("total_count_source", "base_plus_new")
@@ -444,6 +523,7 @@ def run(dump: str, report_month: str, out_dir: str | Path, config: dict,
         "base_prev_text": base_info["prev_text"] if base_info else None,
         "sheet_modified_time": sheet_modified_time,
         "warnings": warnings,
+        "status_updates": status_updates,
         "blocking": False,
     }
     out_dir.mkdir(parents=True, exist_ok=True)

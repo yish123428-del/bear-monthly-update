@@ -4,14 +4,20 @@
     "file_id": "1hX4OX8PVpNA0SNdX-tqWcF3BdNRBJxz14IgUQzi5r8g",
     "title": "Bear 아이디어 제안",
     "tab": "현황판",
-    "anchor_labels": ["제안월", "접수자", "대분류", "대표 제품명", "세부 현황"],
-    "note": "샌드박스에서 docs.google.com 은 프록시에 막힌다. mcp__Google_Drive__read_file_content 로만 읽고, 시트에 쓰지 않는다."
+    "anchor_labels": [
+      "제안월",
+      "접수자",
+      "대분류",
+      "대표 제품명",
+      "세부 현황"
+    ],
+    "note": "샌드박스에서 docs.google.com 은 프록시에 막힌다. mcp__Google_Drive__download_file_content(exportMimeType=text/csv)로 읽고, 시트에 쓰지 않는다."
   },
   "drive_upload": {
-    "enabled": true,
+    "enabled": false,
     "folder_id": "",
     "folder_title": "BEAR 아이디어 제안 현황판",
-    "note": "folder_id 가 비어 있으면 첫 실행 세션이 Drive 에 folder_title 폴더를 만들고 ID 를 여기에 적어 커밋한다."
+    "note": "꺼짐(2026-10): Drive create_file 은 base64 내용을 호출 인자로 받아야 해 현황판(~120KB)을 세션이 넘기기 어렵다. 원본은 저장소 data/·output/. 켜면 folder_id 가 비었을 때 첫 실행이 folder_title 폴더를 만들고 ID 를 적는다."
   },
   "notify": {
     "gmail_to": "yish123428@gmail.com",
@@ -43,13 +49,28 @@
   },
   "mapping": {
     "bonbu": [
-      {"match": "마케팅", "value": "MKT"},
-      {"match": "병원|로컬|영업", "value": "영업본부"}
+      {
+        "match": "마케팅",
+        "value": "MKT"
+      },
+      {
+        "match": "병원|로컬|영업",
+        "value": "영업본부"
+      }
     ],
-    "division_suffix": {"MKT": "사업부", "영업본부": "사업부"},
-    "team_suffix": {"MKT": "사업팀"},
-    "bonbu_display": {"영업본부": ""},
-    "team_display_suffix": {"영업본부": "사무소"},
+    "division_suffix": {
+      "MKT": "사업부",
+      "영업본부": "사업부"
+    },
+    "team_suffix": {
+      "MKT": "사업팀"
+    },
+    "bonbu_display": {
+      "영업본부": ""
+    },
+    "team_display_suffix": {
+      "영업본부": "사무소"
+    },
     "team_aliases": {
       "호피안": "호흡피부안과사업팀",
       "호흡피부안과": "호흡피부안과사업팀",
@@ -69,12 +90,26 @@
     "_note": "team_aliases: 시트 표기 → 현황판 시트1 행 이름. 현황판 팀 목록(26년 9월): 소화기1/2사업팀, 호흡피부안과사업팀, 항암바이오사업팀, 순환기1/2사업팀, 내분비사업팀, CNS TF, 디지털헬스1~4팀 / 사업부: 서울1~4사업부, 지방1~4사업부 / 사무소: 병원경기2, 북부2, 경인3 등 64개",
     "review_status": {
       "rules": [
-        {"detail": "1차 타당성 검토", "status": "진행중", "value": "1차 타당성 검토중"},
-        {"detail": "유관부서 검토", "status": "진행중", "value": "유관부서 검토중"},
-        {"detail": "2차 피드백", "status": "진행중", "value": "2차 피드백 진행중"}
+        {
+          "detail": "1차 타당성 검토",
+          "status": "진행중",
+          "value": "1차 타당성 검토중"
+        },
+        {
+          "detail": "유관부서 검토",
+          "status": "진행중",
+          "value": "유관부서 검토중"
+        },
+        {
+          "detail": "2차 피드백",
+          "status": "진행중",
+          "value": "2차 피드백 진행중"
+        }
       ],
       "stopped_value": "검토 중단"
     },
-    "compound_types": ["복합제"]
+    "compound_types": [
+      "복합제"
+    ]
   }
 }

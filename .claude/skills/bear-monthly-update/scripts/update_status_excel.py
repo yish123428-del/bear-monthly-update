@@ -353,8 +353,36 @@ def parse_args():
     return ap.parse_args()
 
 
+def apply_status_updates(ws, status_updates):
+    """시트2 기존 행의 '검토 결과' 를 갱신. 행 번호 + 기존 값이 둘 다 맞을 때만 바꾼다."""
+    warnings = []
+    if not status_updates:
+        return warnings
+    header_row = None
+    for r in range(1, 10):
+        if "제안 연월" in [c.value for c in ws[r]]:
+            header_row = r
+            break
+    col = None
+    if header_row:
+        col = next((c.column for c in ws[header_row] if c.value == "검토 결과"), None)
+    if not col:
+        return ["시트2 '검토 결과' 컬럼을 찾지 못해 검토 결과 갱신을 건너뜀"]
+    for u in status_updates:
+        cell = ws.cell(row=int(u["row"]), column=col)
+        cur = str(cell.value or "").strip()
+        if cur != str(u.get("old", "")).strip():
+            warnings.append("검토 결과 갱신 건너뜀(현재 값 불일치): row " + str(u["row"])
+                            + " '" + cur + "' ≠ '" + str(u.get("old")) + "'")
+            continue
+        cell.value = u["new"]
+        print("  v [누적요약] row=" + str(u["row"]) + " 검토 결과 '" + cur + "' → '" + u["new"] + "'",
+              file=sys.stderr)
+    return warnings
+
+
 def run(base, new_proposals, report_month, prev_month, new_count, total_count,
-        output, alias=None):
+        output, alias=None, status_updates=None):
     """베이스 현황판에 신규 제안을 반영해 output 에 저장. 경고 문자열 목록을 돌려준다.
 
     new_proposals 는 .xlsx 경로 또는 이미 로드된 제안 dict 목록.
@@ -404,6 +432,7 @@ def run(base, new_proposals, report_month, prev_month, new_count, total_count,
         (n for n in wb.sheetnames if n.startswith("2.") and "누적" in n), None
     )
     if sheet2_name:
+        all_warnings.extend(apply_status_updates(wb[sheet2_name], status_updates))
         update_sheet2(wb[sheet2_name], proposals, report_month)
     else:
         all_warnings.append("시트 '2. 누적 제안 요약(...)' 없음")

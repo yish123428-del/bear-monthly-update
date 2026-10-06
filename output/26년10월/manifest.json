@@ -1,0 +1,51 @@
+{
+  "report_month": "26년 10월",
+  "version": 1,
+  "new_count": 0,
+  "total_count": 85,
+  "base": "/home/user/bear-monthly-update/data/BEAR_아이디어_제안_현황판_26년9월_v1.xlsx",
+  "status_xlsx": "/home/user/bear-monthly-update/output/26년10월/BEAR_아이디어_제안_현황판_26년10월_v1.xlsx",
+  "eml": "/home/user/bear-monthly-update/output/26년10월/BEAR_아이디어_제안_현황_공유_26년10월_1주차.eml",
+  "images": [
+    "/home/user/bear-monthly-update/output/26년10월/images/status_table.png",
+    "/home/user/bear-monthly-update/output/26년10월/images/summary_table.png"
+  ],
+  "review": "/home/user/bear-monthly-update/output/26년10월/review.md",
+  "unmatched_teams": [],
+  "status_updates": [
+    {
+      "row": 14,
+      "old": "1차 타당성 검토중",
+      "new": "검토 중단",
+      "label": "26년 7월 호피안사업팀 김혁 — 당뇨병성망막병증 점안액(도베실산칼슘, 은행엽 엑스 등)",
+      "sheet_detail": "1차 피드백"
+    },
+    {
+      "row": 15,
+      "old": "1차 타당성 검토중",
+      "new": "검토 중단",
+      "label": "26년 7월 호피안사업팀 김혁 — 황반변성 점안액(루테인)",
+      "sheet_detail": "1차 피드백"
+    },
+    {
+      "row": 16,
+      "old": "1차 타당성 검토중",
+      "new": "검토 중단",
+      "label": "26년 7월 호피안사업팀 김혁 — 건성안 점안액(오메가-3)",
+      "sheet_detail": "1차 피드백"
+    },
+    {
+      "row": 17,
+      "old": "1차 타당성 검토중",
+      "new": "검토 중단",
+      "label": "26년 8월 소화기2사업팀 김혁(C) — NSAIDs + 소화기용제 복합제",
+      "sheet_detail": "1차 피드백"
+    }
+  ],
+  "warnings": [],
+  "attention": false,
+  "notify_subject": "[BEAR 자동화] 26년 10월 현황판·메일 생성 완료 (신규 0건, 총 85건)",
+  "dry_run": false,
+  "built_at": "2026-10-06 11:38:49 KST",
+  "data_copy": "/home/user/bear-monthly-update/data/BEAR_아이디어_제안_현황판_26년10월_v1.xlsx"
+}

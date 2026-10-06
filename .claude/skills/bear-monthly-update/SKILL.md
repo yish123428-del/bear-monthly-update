@@ -60,7 +60,9 @@ python3 scripts/pipeline.py prepare --dump <덤프경로> --report-month "26년 
 - `proposals.json` 의 각 항목 중 **`제안내용` 과 `이메일표기` 문구만** 다듬어도 된다. `_source` 의 원문(제품명·성분·소분류·적응증)만으로 한 줄 요약을 쓴다. 기존 문체 예: `우루사+실리스칸 복합제(UDCA+실리마린)`, `이지에프 연고/외용액(rhEGF) 신규 적응증(쇼그렌, 외안성 질환 등)`. 팀·제안자·건수·검토결과·월은 바꾸지 않는다.
 - `_unmatched: true`(팀 미매칭)는 그대로 둔다. 시트1 카운트에는 안 들어가고 시트2 행은 들어간다. 알림에 `[확인 필요]` 가 붙는다. 자주 나오는 표기는 나중에 `config.mapping.team_aliases` 에 추가한다.
 - 캐치업 행(`_reason` 에 "캐치업")은 이전 달에 누락된 것이므로 포함하되 review 에 남긴다.
-- 헤더를 못 찾아 스크립트가 실패하거나 신규 0건이면 build 를 건너뛰고 7단계(알림)로 가서 상황을 보고한다.
+- review.md 의 "누적 요약 검토 결과 갱신" 절: 시트에서 **검토 중단**으로 바뀐 기존 제안을 누적 요약(시트2) 검토 결과에 반영한다(build 때 자동 적용, 행 번호와 기존 값이 둘 다 맞을 때만). 그 밖의 검토 결과 문구(예: `도입 논의중`, `유관부서 검토중`)는 사람이 다듬은 것이라 바꾸지 않는다.
+- **신규 0건이어도 build 한다.** 메일 [신규 제안] 아래에 `N월 신규 제안 없음` 한 줄이 들어가고, 누계 문구와 검토 결과 갱신이 반영된다.
+- 헤더를 못 찾아 스크립트가 실패하면 build 를 건너뛰고 7단계(알림)로 가서 상황을 보고한다.
 
 ### 4. build — 현황판·이미지·메일
 
@@ -84,19 +86,19 @@ git push origin HEAD || git push -u origin HEAD:bear/26년9월
 
 체크아웃된 브랜치(저장소 기본 브랜치)에 그대로 푸시한다. 거부되면 `bear/<월>` 브랜치로 올리고 알림에 "병합 필요" 를 적는다.
 
-### 6. Drive 사본
+### 6. Drive 사본 (현재 꺼짐)
 
-`config.drive_upload.enabled` 가 true 면 현황판 xlsx 를 `mcp__Google_Drive__create_file` 로 올린다:
-`base64Content`(파일 base64), `contentMimeType: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`, `disableConversionToGoogleType: true`, `parentId: folder_id`, `title: 파일명`.
-`folder_id` 가 비어 있으면 먼저 `mimeType: application/vnd.google-apps.folder` 로 `folder_title` 폴더를 만들고 그 ID 를 `config.json` 에 적어 함께 커밋한다. 실패해도 계속 진행하고 알림에 남긴다.
+`config.drive_upload.enabled` 는 false 다. Drive 커넥터의 `create_file` 은 파일 내용을 base64 로 호출 인자에 직접 넣어야 해서,
+현황판(약 120KB → base64 16만 자)을 세션이 전달하기에 너무 크다. 원본은 저장소 `data/`·`output/` 이다.
+나중에 켤 경우: `create_file(base64Content, contentMimeType=xlsx, disableConversionToGoogleType=true, parentId=folder_id, title=파일명)`.
 
 ### 7. 본인 알림 (Gmail)
 
-`mcp__Gmail__send_message` 를 **`config.notify.gmail_to` 한 명에게만** 보낸다.
+`mcp__Gmail__send_message` 를 **`config.notify.gmail_to` 한 명에게만** 보낸다. **첨부하지 않는다** (.eml 은 이미지·현황판을 품어 약 900KB 라 base64 로 넘길 수 없다).
 
 - 제목: manifest 의 `notify_subject` (`[확인 필요] [BEAR 자동화] 26년 9월 현황판·메일 생성 완료 (신규 N건, 총 M건)`)
-- 본문: 신규 제안 목록 한 줄씩, review.md 의 "확인 필요" 절 전문, 저장소 커밋/브랜치, Drive 링크, 실행일 note
-- 첨부: 현황판 `.xlsx` 와 `.eml` (base64, `mimeType` 각각 xlsx / `message/rfc822`)
+- 본문: 신규 제안 목록 한 줄씩, 누적 요약 검토 결과 갱신 목록, review.md 의 "확인 필요" 절 전문, 실행일 note
+- 파일 링크: `https://github.com/yish123428-del/bear-monthly-update/tree/main/output/<YY년M월>` (현황판 xlsx, 공유 메일 .eml)
 
 recipients.json 의 사업팀·Cc 주소로는 절대 보내지 않는다.
 
