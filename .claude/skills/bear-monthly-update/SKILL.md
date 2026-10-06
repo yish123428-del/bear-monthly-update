@@ -44,9 +44,9 @@ JSON 이 나온다. `run: false` 면 **"오늘(…)은 실행일이 아닙니다
 
 ### 2. 시트 수집
 
-`config.json` 의 `sheet.file_id` 로 `mcp__Google_Drive__read_file_content` 를 호출한다. 결과가 커서 하네스가 파일로 저장하고 경로를 알려준다 → 그 경로가 `--dump`. 드물게 인라인이면 `Write` 로 `work/sheet_dump.json` 에 저장한다.
+`config.json` 의 `sheet.file_id` 로 **`mcp__Google_Drive__download_file_content`** 를 `exportMimeType: "text/csv"` 로 호출한다. CSV 는 **첫 탭('현황판') 전체**를 담는다. 결과가 커서 하네스가 `{"content": "<base64>", "mimeType": "text/csv"}` JSON 파일로 저장하고 경로를 알려준다 → 그 경로가 `--dump` (스크립트가 base64 를 푼다). 인라인이면 `Write` 로 `work/sheet_dump.json` 에 저장한다.
 `mcp__Google_Drive__get_file_metadata` 로 `modifiedTime` 도 받아 둔다.
-`download_file_content` 는 쓰지 말 것(첫 탭 CSV 만 나온다). 구조는 `references/sheet-schema.md`.
+`read_file_content` 는 2026-10 부터 탭별 **샘플 행 몇 개만** 돌려주므로 쓰지 않는다(이전 markdown 덤프 형식도 스크립트가 계속 받긴 한다). 구조는 `references/sheet-schema.md`.
 
 ### 3. prepare — 신규 제안 초안
 

@@ -46,6 +46,42 @@ class TestParseDump(unittest.TestCase):
         self.assertEqual(r["세부현황"], "1차 타당성 검토")
         self.assertEqual(self.rows[0]["소분류"], "-")  # \- 언이스케이프
 
+    def test_csv_dump_matches_markdown(self):
+        """download_file_content(text/csv) 경로가 markdown 경로와 같은 레코드를 낸다."""
+        import csv
+        import io
+        import json
+        import base64
+        import dumpio
+        text = dumpio.load_dump(FIXTURE)
+        lines = text.split("\n")
+        hdr_idx, header = dumpio.find_header_blocks(lines, CONFIG["sheet"]["anchor_labels"])[0]
+        buf = io.StringIO()
+        w = csv.writer(buf)
+        w.writerow(["■ Bear 아이디어 제안(베아제) 현황판"] + [""] * 21)
+        w.writerow([""] * 22)
+        # 셀 안 줄바꿈이 있는 헤더도 처리되는지: '사업팀(MKT)\n 사무소(영업)'
+        w.writerow([h.replace("사업팀(MKT) 사무소(영업)", "사업팀(MKT)\n 사무소(영업)") for h in header])
+        for line in lines[hdr_idx + 1:]:
+            if "|" not in line:
+                break
+            cells = dumpio.split_row(line)
+            if dumpio.is_separator(cells):
+                continue
+            w.writerow([dumpio.unescape(c) for c in cells])
+        csv_text = buf.getvalue()
+        self.assertTrue(dumpio.is_csv_dump(csv_text))
+        rows_csv, _ = self.s2p.parse_dump(csv_text, CONFIG["sheet"]["anchor_labels"])
+        self.assertEqual(len(rows_csv), len(self.rows))
+        self.assertEqual(rows_csv[1], self.rows[1])
+        self.assertEqual(rows_csv[0]["제안월"], "24년 11월")
+        # download_file_content JSON 포장(base64) 도 load_dump 가 푼다
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "dl.json"
+            p.write_text(json.dumps({"content": base64.b64encode(csv_text.encode("utf-8")).decode(),
+                                     "mimeType": "text/csv", "title": "x", "id": "y"}), encoding="utf-8")
+            self.assertEqual(dumpio.load_dump(p), csv_text)
+
 
 @unittest.skipUnless(HAVE_OPENPYXL, "openpyxl 미설치")
 class TestNormalize(unittest.TestCase):

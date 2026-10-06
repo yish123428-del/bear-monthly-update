@@ -4,11 +4,13 @@
 
 ## 읽는 방법
 
-`mcp__Google_Drive__read_file_content(fileId)` 만 쓴다.
+`mcp__Google_Drive__download_file_content(fileId, exportMimeType="text/csv")` 를 쓴다.
 
-- 결과는 **모든 탭이 탭 이름 없이 markdown 표로 이어붙은 텍스트**(약 130KB). 하네스가
-  `{"fileContent": "..."}` JSON 파일로 저장하고 경로를 알려준다 → 그 경로를 `--dump` 로 넘긴다.
-- `download_file_content` 는 첫 탭만 CSV 로 주고 base64 를 컨텍스트에 되돌리므로 쓰지 않는다.
+- CSV 는 **첫 탭('현황판') 전체**(모든 행)를 담는다. 하네스가 `{"content": "<base64>", "mimeType": "text/csv"}`
+  JSON 파일로 저장하고 경로를 알려준다 → 그 경로를 `--dump` 로 넘기면 `dumpio.load_dump` 가 base64 를 푼다.
+- `read_file_content` 는 2026-10 부터 "corpus_document" 형식으로 탭별 **샘플 행 몇 개만** 돌려주므로 전체 데이터를 못 얻는다.
+  (그 이전의 markdown 표 전체 덤프 형식은 `parse_dump` 가 계속 받는다. 그 경우 탭 이름 없이 모든 탭이 이어붙어 있어
+  앵커가 두 번 잡히면 첫 블록을 쓴다.)
 - 샌드박스에서 `docs.google.com/.../export` 는 프록시(403)에 막힌다.
 
 ## 탭 순서 (2026-09 기준)

@@ -42,15 +42,43 @@ def is_separator(cells: list[str]) -> bool:
 
 
 def load_dump(path: str | Path) -> str:
-    """JSON({"fileContent": ...}) 또는 markdown 원문 파일을 텍스트로 돌려준다."""
+    """덤프 파일을 텍스트로 돌려준다.
+
+    받는 형태:
+      * {"fileContent": "..."}  — read_file_content 결과 (markdown 표)
+      * {"content": "<base64>", "mimeType": "text/csv"} — download_file_content 결과 (CSV)
+      * markdown 또는 CSV 원문
+    """
     raw = Path(path).read_text(encoding="utf-8")
     stripped = raw.lstrip()
     if stripped.startswith("{"):
         try:
-            return json.loads(raw)["fileContent"]
-        except (json.JSONDecodeError, KeyError, TypeError):
-            pass
+            obj = json.loads(raw)
+        except json.JSONDecodeError:
+            return raw
+        if isinstance(obj, dict):
+            if isinstance(obj.get("fileContent"), str):
+                return obj["fileContent"]
+            if isinstance(obj.get("content"), str):
+                content = obj["content"]
+                try:
+                    import base64
+                    return base64.b64decode(content).decode("utf-8-sig")
+                except Exception:  # noqa: BLE001 — base64 가 아니면 원문
+                    return content
     return raw
+
+
+def is_csv_dump(text: str) -> bool:
+    """markdown 표(| 로 시작)가 아니면 CSV 로 본다."""
+    first = next((l for l in text.splitlines() if l.strip()), "")
+    return not first.lstrip().startswith("|") and not first.lstrip().startswith("#")
+
+
+def csv_rows(text: str) -> list[list[str]]:
+    import csv
+    import io
+    return [[re.sub(r"\s+", " ", c).strip() for c in row] for row in csv.reader(io.StringIO(text))]
 
 
 def find_header_blocks(lines: list[str], anchor_labels) -> list[tuple[int, list[str]]]:

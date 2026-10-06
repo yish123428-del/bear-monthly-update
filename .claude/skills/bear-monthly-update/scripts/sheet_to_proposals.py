@@ -73,32 +73,17 @@ def build_index(header: list[str]) -> dict[str, int]:
     return index
 
 
-def parse_dump(text: str, anchor_labels) -> tuple[list[dict], list[str]]:
-    """첫 번째 앵커 블록의 데이터 행을 dict 목록으로. (rows, warnings)"""
-    warnings: list[str] = []
-    lines = text.split("\n")
-    blocks = dumpio.find_header_blocks(lines, anchor_labels)
-    if not blocks:
-        raise SystemExit(
-            "시트 덤프에서 '현황판' 헤더를 찾지 못했습니다. 시트 구조가 바뀌었는지 확인하세요.\n"
-            f"기대한 라벨: {', '.join(anchor_labels)}"
-        )
-    header_idx, header = blocks[0]
+def _records_from_table(table: list[list[str]], header: list[str], warnings: list[str]) -> list[dict]:
+    """헤더 다음 행들(이미 정규화된 셀 리스트)을 내부 키 dict 로."""
     index = build_index(header)
     missing = [k for _, k in COLUMN_MAP if k not in index]
     if missing:
         warnings.append(f"헤더에서 찾지 못한 컬럼: {missing}")
-
     rows: list[dict] = []
-    for line in lines[header_idx + 1:]:
-        if "|" not in line:
-            break
-        cells = dumpio.split_row(line)
-        if dumpio.is_separator(cells) or not any(cells):
+    for cells in table:
+        if not any(cells):
             continue
-        row = {}
-        for key, pos in index.items():
-            row[key] = dumpio.unescape(cells[pos]) if pos < len(cells) else ""
+        row = {key: (cells[pos] if pos < len(cells) else "") for key, pos in index.items()}
         if not MONTH_RE.match(row.get("제안월", "")):
             if any(row.values()):
                 warnings.append("제안월이 비어 있거나 형식이 달라 건너뜀: " + json.dumps(
@@ -106,6 +91,47 @@ def parse_dump(text: str, anchor_labels) -> tuple[list[dict], list[str]]:
             continue
         row["제안월"] = naming.normalize_month(row["제안월"])
         rows.append(row)
+    return rows
+
+
+def _missing_header_exit(anchor_labels):
+    raise SystemExit(
+        "시트 덤프에서 '현황판' 헤더를 찾지 못했습니다. 시트 구조가 바뀌었는지 확인하세요.\n"
+        f"기대한 라벨: {', '.join(anchor_labels)}"
+    )
+
+
+def parse_csv_dump(text: str, anchor_labels) -> tuple[list[dict], list[str]]:
+    """download_file_content(text/csv) 결과 — 첫 탭('현황판') 전체."""
+    warnings: list[str] = []
+    table = dumpio.csv_rows(text)
+    hdr = next((i for i, cells in enumerate(table)
+                if all(any(label == c for c in cells) for label in anchor_labels)), None)
+    if hdr is None:
+        _missing_header_exit(anchor_labels)
+    rows = _records_from_table(table[hdr + 1:], table[hdr], warnings)
+    return rows, warnings
+
+
+def parse_dump(text: str, anchor_labels) -> tuple[list[dict], list[str]]:
+    """덤프(markdown 표 또는 CSV)의 첫 번째 앵커 블록 데이터 행을 dict 목록으로. (rows, warnings)"""
+    if dumpio.is_csv_dump(text):
+        return parse_csv_dump(text, anchor_labels)
+    warnings: list[str] = []
+    lines = text.split("\n")
+    blocks = dumpio.find_header_blocks(lines, anchor_labels)
+    if not blocks:
+        _missing_header_exit(anchor_labels)
+    header_idx, header = blocks[0]
+    table = []
+    for line in lines[header_idx + 1:]:
+        if "|" not in line:
+            break
+        cells = dumpio.split_row(line)
+        if dumpio.is_separator(cells):
+            continue
+        table.append([dumpio.unescape(c) for c in cells])
+    rows = _records_from_table(table, header, warnings)
 
     if len(blocks) > 1:
         # 두 번째 탭(구버전 복제)의 행 수를 세어 첫 블록이 더 작으면 경고

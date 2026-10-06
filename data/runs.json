@@ -6,5 +6,13 @@
     "total_count": 85,
     "status_xlsx": "BEAR_아이디어_제안_현황판_26년9월_v1.xlsx",
     "note": "수동 작성·발송분(Gmail 전달 메일에서 회수). 자동화 도입 전"
+  },
+  "26년 10월": {
+    "run_date": "2026-10-06",
+    "version": 0,
+    "new_count": 0,
+    "total_count": 85,
+    "status_xlsx": null,
+    "note": "9월 신규 제안 0건(시트 85행, 베이스 누계 85건 일치) → SKILL 3단계 규칙대로 build 생략, Gmail 알림만 발송. 필요 시 `pipeline.py build --force` 로 수동 생성"
   }
 }
