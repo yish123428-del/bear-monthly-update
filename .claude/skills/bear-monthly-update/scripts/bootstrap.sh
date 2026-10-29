@@ -7,10 +7,16 @@ SKILL_DIR="$(cd "$HERE/.." && pwd)"
 REPO_ROOT="$(cd "$SKILL_DIR/../../.." && pwd)"
 
 echo "[bootstrap] python deps"
-if ! python3 -c "import openpyxl, pymupdf, holidays, PIL" >/dev/null 2>&1; then
-  pip install -q -r "$REPO_ROOT/requirements.txt" 2>&1 | grep -v "WARNING: Running pip as the 'root'" || true
+# 'pip' 단독은 다른 파이썬(예: 3.13)에 설치될 수 있으므로 실행용 python3 의 pip 을 쓴다.
+# 'import PIL' 만으로는 깨진 시스템 Pillow(/usr/lib/python3/dist-packages)를 걸러내지 못해 Image 까지 불러 본다.
+CHECK="import openpyxl, pymupdf, holidays; from PIL import Image"
+if ! python3 -c "$CHECK" >/dev/null 2>&1; then
+  python3 -m pip install -q -r "$REPO_ROOT/requirements.txt" 2>&1 | grep -v "WARNING: Running pip as the 'root'" || true
 fi
-python3 -c "import openpyxl, pymupdf, holidays, PIL; print('[bootstrap] deps ok')" 2>&1 || echo "[bootstrap] deps 설치 실패 — SKILL.md 0단계에서 다시 시도"
+if ! python3 -c "from PIL import Image" >/dev/null 2>&1; then
+  python3 -m pip install -q --ignore-installed "pillow>=10.0" 2>&1 | grep -v "WARNING: Running pip as the 'root'" || true
+fi
+python3 -c "$CHECK; print('[bootstrap] deps ok')" 2>&1 || echo "[bootstrap] deps 설치 실패 — SKILL.md 0단계에서 다시 시도"
 
 echo "[bootstrap] fonts"
 mkdir -p "$HOME/.fonts"

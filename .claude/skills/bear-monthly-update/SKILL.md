@@ -28,10 +28,10 @@ description: 신제품기획팀 'BEAR 아이디어 제안' 월간 현황 업데�
 
 ```bash
 bash scripts/bootstrap.sh          # pip 의존성(openpyxl, pymupdf, holidays, pillow) + 나눔고딕 → ~/.fonts
-python3 -c "import openpyxl, pymupdf, holidays, PIL"
+python3 -c "import openpyxl, pymupdf, holidays; from PIL import Image"
 ```
 
-실패하면 `pip install -r ../../../requirements.txt` 를 직접 실행한다. SessionStart hook 이 이미 돌렸을 수 있다.
+실패하면 `python3 -m pip install -r ../../../requirements.txt` 를 직접 실행한다(`pip` 단독은 다른 파이썬 버전에 설치될 수 있다). SessionStart hook 이 이미 돌렸을 수 있다.
 
 ### 1. 실행일 게이트
 
